@@ -38,6 +38,10 @@ export class User {
   @Column({ comment: '密码', select: false, default: '' })
   password: string;
 
+  // isAdmin
+  @Column({ comment: '是否是管理员', default: false })
+  isAdmin: boolean;
+
   @CreateDateColumn({
     name: 'create_time',
     type: 'timestamp',

@@ -8,6 +8,7 @@ import {
   Session,
   UseGuards,
   Query,
+  HttpException,
   UnauthorizedException,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -123,9 +124,10 @@ export class AppController {
     @Query('code') code: string,
     @Query('state') state: string,
     @Session() session: any,
+    @Res() response: Response,
   ) {
     if (state !== session.state) {
-      throw new Error('状态码错误，谨防跨站请求伪造攻击！');
+      throw new HttpException('状态码错误，谨防跨站请求伪造攻击！', 404);
     }
 
     console.log('oauth2Callback');
@@ -151,7 +153,21 @@ export class AppController {
       // 成功认证后生成token
       const { access_token } = this.authService.login(userInfo);
       (res as any).access_token = access_token;
-      return res;
+
+      const url = new URL(this.configService.get('OAUTH_FRONTEND_URL'));
+
+      // 这里是为了兼容VueRouter的hash模式和history模式
+      if (url.hash) {
+        // 如果 hash 部分存在，解析并处理 hash 部分
+        const hashUrl = new URL(url.hash.substring(1), url.origin);
+        hashUrl.searchParams.append('t', access_token);
+        url.hash = hashUrl.pathname + hashUrl.search;
+      } else {
+        // 如果 hash 部分不存在，直接在主 URL 上添加查询参数
+        url.searchParams.append('t', access_token);
+      }
+      console.log('redirect', url.toString());
+      response.redirect(url.toString());
     } catch (error) {
       // 处理错误
       console.error(error);

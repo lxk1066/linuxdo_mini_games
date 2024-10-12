@@ -33,8 +33,8 @@ export default async function AppInit(app: NestExpressApplication) {
   // 使用express-rate-limit对站点限流，防止被暴力攻击
   app.use(
     rateLimit({
-      windowMs: 10 * 60 * 1000, // 10分钟
-      max: 100, // 每个IP在指定时间（windowMs）内，最大100次请求
+      windowMs: 60 * 1000, // 1分钟
+      max: 100, // 每个IP在指定时间（windowMs）内，最大20次请求
     }),
   );
 
@@ -43,7 +43,7 @@ export default async function AppInit(app: NestExpressApplication) {
     .get<string>('CORS_ORIGIN_WHITELIST')
     .split(',');
   app.enableCors({
-    origin: whitelist,
+    origin: whitelist.length == 1 ? whitelist[0] : whitelist,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'], // 允许的自定义请求头
     credentials: true, // 允许发送cookies
   });
@@ -56,7 +56,7 @@ export default async function AppInit(app: NestExpressApplication) {
   const staticAssetsPath = configService.get<string>('STATIC_FILES_PATH');
   const __dirname = await projectRootPath();
 
-  app.useStaticAssets(join(__dirname, staticAssetsPath), { prefix: '/images' });
+  app.useStaticAssets(join(__dirname, staticAssetsPath), { prefix: '/static' });
 
   // 开启版本控制
   app.enableVersioning({
@@ -95,13 +95,15 @@ export default async function AppInit(app: NestExpressApplication) {
   app.useGlobalPipes(new ValidationPipe());
 
   // 开启 swagger 文档
-  const swaggerOptions = new DocumentBuilder()
-    .addBearerAuth()
-    .setTitle('MeetU API')
-    .setDescription('API文档')
-    .addBearerAuth()
-    .setVersion('1.0')
-    .build();
-  const swaggerDocument = SwaggerModule.createDocument(app, swaggerOptions);
-  SwaggerModule.setup('swagger', app, swaggerDocument);
+  if (configService.get('ENV') == 'dev') {
+    const swaggerOptions = new DocumentBuilder()
+      .addBearerAuth()
+      .setTitle('LinuxDo 在线匹配小游戏 API')
+      .setDescription('API文档')
+      .addBearerAuth()
+      .setVersion('1.0')
+      .build();
+    const swaggerDocument = SwaggerModule.createDocument(app, swaggerOptions);
+    SwaggerModule.setup('swagger', app, swaggerDocument);
+  }
 }

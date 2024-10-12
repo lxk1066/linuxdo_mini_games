@@ -21,7 +21,7 @@ export class OAuth2Strategy {
   }
 
   // 获取授权 URL
-  getAuthorizationURL(state?: string): string {
+  getAuthorizationURL(state: string): string {
     const params = new URLSearchParams([
       ['client_id', this.clientID],
       ['response_type', 'code'],

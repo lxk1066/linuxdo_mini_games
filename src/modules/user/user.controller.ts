@@ -31,6 +31,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 
 import { JwtAuthGuard } from 'src/modules/auth/auth.guard';
+import { AdminGuard } from 'src/common/guard';
 
 import { UploadService } from '../upload/upload.service';
 
@@ -53,7 +54,7 @@ export class UserController {
   private repository: any;
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiOperation({ summary: '获取所有用户', description: '获取所有用户' })
   @ApiQuery({ name: 'name', required: false, description: '用户名' })
   @ApiResponse({ status: 200, description: '获取成功' })
@@ -66,7 +67,6 @@ export class UserController {
   }
 
   @Get(':id')
-  // @Roles('admin')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: '获取指定ID的用户',
@@ -78,7 +78,26 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
+  @Post('own')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: '获取当前登录用户的信息',
+    description: '获取当前登录用户的信息',
+  })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getOwn(@Req() req: any) {
+    const user = await this.userService.findOne(req.user.userId);
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+      trustLevel: user.trustLevel,
+    };
+  }
+
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiOperation({
     summary: '删除指定ID的用户',
     description: '删除指定ID的用户',
@@ -91,7 +110,7 @@ export class UserController {
 
   // 上传用户头像
   @Post('avatar')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('avatar'))
   @ApiOperation({
     summary: '上传用户头像',

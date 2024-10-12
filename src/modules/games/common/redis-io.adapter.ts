@@ -1,3 +1,9 @@
+/**
+ * Redis adapter for socket.io
+ * 该文件用于自定义 socket.io 适配器
+ * https://docs.nestjs.cn/10/websockets?id=%e6%8b%93%e5%b1%95-socketio
+ *
+ */
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ServerOptions } from 'socket.io';

@@ -15,13 +15,24 @@ export class GamesConsumer {
   @OnQueueCompleted()
   onCompleted(job: Job) {
     this.logger.log(
-      `Processing job ${job.id} of type ${job.name}, completed. ${JSON.stringify(job.data)}`,
+      `Processing job ${job.id} of type ${job.name}, completed. ${JSON.stringify(job.returnvalue)}`,
     );
+
+    if (job.returnvalue) {
+      const { playerId1, playerId2 } = job.returnvalue.matchedPlayers;
+      this.gamesService.sendMatchSuccessMessage(
+        playerId1,
+        playerId2,
+        job.returnvalue.gameId,
+        job.returnvalue.miniGameId,
+      );
+    }
   }
 
   @Process('match')
   async handleMatch(): Promise<{
     gameId: string;
+    miniGameId: number;
     matchedPlayers: { playerId1: number; playerId2: number };
   }> {
     try {
@@ -41,6 +52,9 @@ export class GamesConsumer {
           `Match found between ${matchedPlayers.playerId1} and ${matchedPlayers.playerId2}`,
         );
 
+        // 随机小游戏
+        const miniGameId = await this.gamesService.getRandomGame();
+
         // 移除玩家
         await this.redisClient.zrem(
           'matching',
@@ -48,25 +62,26 @@ export class GamesConsumer {
           `player:${matchedPlayers.playerId2}`,
         );
 
-        // 更新玩家状态为 "InGame"
+        // 更新玩家状态为 "matchSuccess"
         await this.redisClient.hset(
           `player:${matchedPlayers.playerId1}`,
           'state',
-          'InGame',
+          'matchSuccess',
         );
         await this.redisClient.hset(
           `player:${matchedPlayers.playerId2}`,
           'state',
-          'InGame',
+          'matchSuccess',
         );
 
         // 创建游戏房间
         const gameId = await this.gamesService.createGameRoom(
           matchedPlayers.playerId1,
           matchedPlayers.playerId2,
+          miniGameId,
         );
         console.log('创建游戏房间: ', gameId);
-        return { gameId, matchedPlayers };
+        return { gameId, matchedPlayers, miniGameId };
       } else {
         console.log('No suitable match found.');
         return null;

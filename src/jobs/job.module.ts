@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 
 import { EmailService } from './email/email.service';
@@ -12,9 +12,13 @@ import queuesConfig from './queues.config';
 
 import { RedisClientService } from 'src/app.service';
 import { ConfigService } from '@nestjs/config';
+import { GamesModule } from 'src/modules/games/games.module';
 
 @Module({
-  imports: [BullModule.registerQueueAsync(...queuesConfig)],
+  imports: [
+    BullModule.registerQueueAsync(...queuesConfig),
+    forwardRef(() => GamesModule),
+  ],
   providers: [
     EmailService,
     NodemailerService,

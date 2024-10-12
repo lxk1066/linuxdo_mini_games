@@ -1,17 +1,34 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import { resolve } from 'path';
 
 import AppInit from './AppInit';
 
+dotenv.config();
+
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // 读取 SSL 证书文件
+  const httpsOptions = {
+    cert: fs.readFileSync(resolve(process.env.SSL_CERT_PATH)),
+    key: fs.readFileSync(resolve(process.env.SSL_KEY_PATH)),
+  };
+
+  // 改成 http 只需要去掉 httpsOptions 即可
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    httpsOptions,
+  });
 
   // 初始化app
   await AppInit(app);
 
-  await app.listen(8181);
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  // 启动 HTTPS 服务器，监听 8888 端口
+  await app.listen(8888, () => {
+    console.log('HTTP server is running on http://localhost:8888');
+  });
+
   console.log('============= SUCCESS =============');
   console.log('============= SUCCESS =============');
   console.log('============= SUCCESS =============');

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,6 +9,7 @@ import { uploadConfig } from 'src/config/upload.config';
 import { JobModule } from 'src/jobs/job.module';
 import { UploadModule } from '../upload/upload.module';
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity]),

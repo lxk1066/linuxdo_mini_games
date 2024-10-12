@@ -65,6 +65,14 @@ export class RedisClientService {
     return this.redisClient;
   }
 
+  async loadScript(script: string): Promise<unknown> {
+    return await this.redisClient.script('LOAD', script);
+  }
+
+  async eval(sha: string, keys: string[]): Promise<unknown> {
+    return await this.redisClient.evalsha(sha, keys.length, ...keys);
+  }
+
   async flushdb(): Promise<void> {
     await this.redisClient.flushdb();
   }
@@ -81,6 +89,10 @@ export class RedisClientService {
     await this.redisClient.del(key);
   }
 
+  async keys(key: string) {
+    return await this.redisClient.keys(key);
+  }
+
   // hash set: key field value
   async hset(key: string, field: string, value: string): Promise<void> {
     await this.redisClient.hset(key, field, value);
@@ -93,6 +105,10 @@ export class RedisClientService {
   // hash get: key field
   async hget(key: string, field: string): Promise<string> {
     return await this.redisClient.hget(key, field);
+  }
+
+  async hmget(key: string, ...fields: (string | Buffer)[]): Promise<string[]> {
+    return await this.redisClient.hmget(key, ...fields);
   }
 
   async hgetall(key: string): Promise<{ [key: string]: string }> {
@@ -164,6 +180,10 @@ export class RedisClientService {
         limit[1],
       );
     }
+  }
+
+  async zrandmember(key: string, count: number): Promise<string[]> {
+    return await this.redisClient.zrandmember(key, count);
   }
 
   async zrem(key: string, ...member: string[]): Promise<void> {
