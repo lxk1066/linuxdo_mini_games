@@ -2,13 +2,15 @@
 LinuxDo 在线随机匹配小游戏后端项目，使用NestJS + Mysql + Redis实现。
 
 ## 必读事项
-1. 配置文件 `.env.development` 和 `.env.production` 文件必须至少存在一个。
-2. `src/modules/games/games.service.ts`文件的`playerDisconnect`方法用于处理用户掉线时的处理。
+1. 运行项目之前请务必先运行`sql/create_db.sql`文件，以创建数据库和必要的表。
+   虽然NestJS框架本身已经封装了ORM框架并且能够自动创建数据库和表，但是有一些必要的表在项目初次启动时是没有的。
+2. 配置文件 `.env.development` 和 `.env.production` 文件必须至少存在一个。
+3. `src/modules/games/games.service.ts`文件的`playerDisconnect`方法用于处理用户掉线时的处理。
    目前代码会根据不同状态分别处理，但是逻辑和正确性还有待验证，如果需要马上运行项目，可以改为以下代码，即用户掉线就会删除当前房间的所有信息：
    ```ts
     this.delUserId(playerId);
-    const roomId = yield this.redisClientService.hget(`player:${playerId}`, 'roomId');
-    const players = yield this.redisClientService.hmget(roomId, 'player1', 'player2');
+    const roomId = await this.redisClientService.hget(`player:${playerId}`, 'roomId');
+    const players = await this.redisClientService.hmget(roomId, 'player1', 'player2');
     const playerIndex = playerId == players[0] ? 1 : 2;
     await this.redisClientService.hmset(roomId, {
         state: 'playAbort',
@@ -20,7 +22,7 @@ LinuxDo 在线随机匹配小游戏后端项目，使用NestJS + Mysql + Redis�
     this.redisClientService.del(roomId);
     return `playerDisconnect`;
    ```
-3. 本项目有两种打包模式：NestJS打包和Webpack打包。NestJS打包会生产出一个文件夹项目，并且包含源码，而Webpack打包会生成两个文件：一个是webpack打包后的原始JS文件；一个是经过第三方库加密的独立JS文件，**需要注意的是**: webpack配置文件中配置了第三方加密插件，尽量不要改动，我已经经过测试可以正常使用，如果对加密插件进行额外修改可能造成系统无法运行（过度的混淆加密会破坏NestJS运行）。
+4. 本项目有两种打包模式：NestJS打包和Webpack打包。NestJS打包会生产出一个文件夹项目，并且包含源码，而Webpack打包会生成两个文件：一个是webpack打包后的原始JS文件；一个是经过第三方库加密的独立JS文件，**需要注意的是**: webpack配置文件中配置了第三方加密插件，尽量不要改动，我已经经过测试可以正常使用，如果对加密插件进行额外修改可能造成系统无法运行（过度的混淆加密会破坏NestJS运行）。
    ```json
     // package.json
     "scripts": {
@@ -31,7 +33,7 @@ LinuxDo 在线随机匹配小游戏后端项目，使用NestJS + Mysql + Redis�
 
    webpack打包模式比较适合分发打包后的产物而不需要担心暴露源码。
 
-4. 系统登录需要通过[ LinuxDo 开发者应用接入](https://connect.linux.do)后，通过Oauth登录，也可以自己再开发一套注册登录接口(已提供基础接口)。这里对如何接入LinuxDo做出说明。
+5. 系统登录需要通过[ LinuxDo 开发者应用接入](https://connect.linux.do)后，通过Oauth登录，也可以自己再开发一套注册登录接口(已提供基础接口)。这里对如何接入LinuxDo做出说明。
    
   LinuxDo默认提供的测试应用配置如下：
   + authorize 端点： https://connect.linux.do/oauth2/authorize
