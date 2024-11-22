@@ -287,6 +287,31 @@ export class GamesService {
     this.redisClientService.flushdb();
   }
 
+  // 游戏中断，向两名玩家发送事件
+  async gameInterrupt(playerId: number) {
+    console.log('游戏中断');
+    // 获取房间信息
+    const gameInfo = await this.getGameInfoByPlayerId(playerId);
+    // 当前玩家是掉线的一方，需要知道另一名玩家的状态，如果对方玩家在游戏中，需要获取分数同时返回
+    const otherPlayerId =
+      playerId == parseInt(gameInfo.player1)
+        ? parseInt(gameInfo.player2)
+        : parseInt(gameInfo.player1);
+
+    const status = await this.redisClientService.hget(
+      `player:${otherPlayerId}`,
+      'state',
+    );
+
+    [playerId, otherPlayerId].forEach((player) => {
+      this.gamesJobService.sendMessageToPlayer(
+        player,
+        'gameInterrupt',
+        JSON.stringify({ playerId: playerId, playerState: status }),
+      );
+    });
+  }
+
   async playerDisconnect(playerId) {
     // 删除玩家socketId
     this.delUserId(playerId);
@@ -303,6 +328,7 @@ export class GamesService {
     }
     // 2. 如果玩家状态为matchSuccess，则将玩家信息删除，并将房间的玩家状态改为'playAbort', 并将两名玩家的分数改为-1，
     if (playerState == 'matchSuccess') {
+      await this.gameInterrupt(playerId);
       const roomId = await this.redisClientService.hget(
         `player:${playerId}`,
         'roomId',
@@ -319,6 +345,7 @@ export class GamesService {
     }
     // 3. 如果玩家状态为matchReady，则将玩家信息删除，并将房间的玩家状态改为'playAbort'，并将两名玩家的分数改为-1，
     if (playerState == 'matchReady') {
+      await this.gameInterrupt(playerId);
       const roomId = await this.redisClientService.hget(
         `player:${playerId}`,
         'roomId',
@@ -335,6 +362,7 @@ export class GamesService {
     }
     // 4. 如果玩家状态为InGame，则将玩家信息删除，并将房间的玩家状态改为'playAbort'，并将掉线玩家的分数改为-1，另一名玩家成为winner，
     if (playerState == 'InGame') {
+      await this.gameInterrupt(playerId);
       const roomId = await this.redisClientService.hget(
         `player:${playerId}`,
         'roomId',
