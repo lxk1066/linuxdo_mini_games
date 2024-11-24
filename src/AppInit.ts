@@ -104,6 +104,8 @@ export default async function AppInit(app: NestExpressApplication) {
       .setVersion('1.0')
       .build();
     const swaggerDocument = SwaggerModule.createDocument(app, swaggerOptions);
-    SwaggerModule.setup('swagger', app, swaggerDocument);
+    SwaggerModule.setup('swagger', app, swaggerDocument, {
+      jsonDocumentUrl: 'swagger/json',
+    });
   }
 }

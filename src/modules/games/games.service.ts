@@ -27,7 +27,9 @@ export class GamesService {
 
   // 获取游戏列表
   async getGamesList() {
-    return await this.gameRepository.find();
+    return await this.gameRepository.find({
+      select: ['id', 'name', 'description'],
+    });
   }
 
   // 添加小游戏
