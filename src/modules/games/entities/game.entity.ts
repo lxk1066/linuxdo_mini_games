@@ -28,6 +28,12 @@ export class Game {
   @Column({ comment: '游戏作者的联系方式', default: '' })
   authorContact: string;
 
+  @Column({
+    comment: '游戏被随机选择的权重，数值越大被选中的概率越大',
+    default: 1,
+  })
+  weight: number;
+
   @CreateDateColumn({
     name: 'create_time',
     type: 'timestamp',

@@ -16,6 +16,8 @@ import { Socket } from 'socket.io';
 
 import getMemoryUsage from 'src/utils/getMemoryUsage';
 
+import binarySearch from 'src/utils/binarySearch';
+
 @Injectable()
 export class GamesService {
   constructor(
@@ -69,8 +71,24 @@ export class GamesService {
   // 从游戏列表中随机选择一个
   async getRandomGame() {
     const games = await this.gameRepository.find();
-    const randomGame = games[Math.floor(Math.random() * games.length)];
-    return randomGame;
+
+    // 计算总权重和累积权重数组
+    let totalWeight = 0;
+    const cumulativeWeights = [];
+
+    for (const game of games) {
+      const weight = game.weight || 1;
+      totalWeight += weight;
+      cumulativeWeights.push(totalWeight);
+    }
+
+    // 生成一个随机数
+    const randomValue = Math.random() * totalWeight;
+
+    // 使用二分查找法找到对应的游戏
+    const selectedIndex = binarySearch(cumulativeWeights, randomValue);
+
+    return games[selectedIndex];
   }
 
   async setUserId(playerId, socketId) {
