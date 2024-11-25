@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User as UserEntity } from './entities/user.entity';
+import { InvitationKey as InvitationKeyEntity } from './entities/invitationKey.entity';
 
 import { uploadConfig } from 'src/config/upload.config';
 
@@ -12,7 +13,7 @@ import { UploadModule } from '../upload/upload.module';
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, InvitationKeyEntity]),
     // 上传头像配置
     uploadConfig('UPLOAD_AVATAR_PATH'),
     UploadModule,

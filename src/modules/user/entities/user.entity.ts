@@ -10,10 +10,10 @@ import {
   name: 'user', // 自定义表名 如果不设置的话Webpack编译的时候会混淆类名导致问题
 })
 export class User {
-  @PrimaryColumn({ comment: '用户ID', unique: true })
+  @PrimaryColumn('bigint', { comment: '用户ID', unique: true })
   id: number;
 
-  // linuxdo or register or admin
+  // linuxdo or platform
   @Column({ comment: '用户类型', default: 'linuxdo' })
   userType: string;
 
@@ -29,7 +29,7 @@ export class User {
   @Column({ comment: '邮箱', length: 100, unique: true })
   email: string;
 
-  @Column({ comment: '用户等级' })
+  @Column({ comment: '用户等级', nullable: true })
   trustLevel: number;
 
   @Column({ comment: '分数', default: 0 })

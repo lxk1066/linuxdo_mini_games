@@ -5,8 +5,6 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  BadRequestException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ResponseData } from 'src/utils/responseData';
 
@@ -15,7 +13,7 @@ import { ResponseData } from 'src/utils/responseData';
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(private readonly logger: Logger) {}
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     // const request = ctx.getRequest();
@@ -24,9 +22,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       data: any = null,
       message: string = '服务器异常，请联系管理员！';
 
-    console.log(`Request Error`);
+    console.log(`Request Error`, exception.name);
 
-    if (exception instanceof BadRequestException) {
+    if (exception.name === 'BadRequestException') {
       // 数据验证失败或请求参数错误
       status = HttpStatus.BAD_REQUEST;
       const response: any = exception.getResponse();
@@ -36,23 +34,33 @@ export class AllExceptionsFilter implements ExceptionFilter {
           data = response.errors;
           break;
         default:
-          message = '请求错误';
-          data =
-            exception instanceof HttpException
-              ? (exception.getResponse() as HttpException).message
-              : '服务器异常，请联系管理员！';
+          message = exception.response.message || '请求错误';
+          data = null;
           break;
       }
-    } else if (exception instanceof UnauthorizedException) {
+    } else if (exception.name === 'UnauthorizedException') {
       // 认证失败
       status = HttpStatus.UNAUTHORIZED;
       message = '认证失败';
       data = exception?.message;
-    } else if (exception instanceof HttpException) {
+    } else if (exception.name === 'HttpException') {
       // 捕获Http异常
       status = exception.getStatus();
       data = exception.getResponse() ?? null;
       message = (exception as HttpException).message ?? 'Unknown Error';
+    } else if (exception.name === 'ForbiddenException') {
+      status = HttpStatus.FORBIDDEN;
+      message = '没有权限';
+      data = exception?.message;
+    } else if (exception.name === 'NotFoundException') {
+      // 捕获Http异常
+      status = HttpStatus.NOT_FOUND;
+      data = exception.getResponse() ?? null;
+      message = (exception as HttpException).message ?? 'Unknown Error';
+    } else if (exception.name === 'InternalServerErrorException') {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = exception?.message;
+      data = null;
     } else {
       // 捕获其他异常
       this.logger.error(exception);

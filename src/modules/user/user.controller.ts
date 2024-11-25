@@ -12,6 +12,7 @@ import {
   UploadedFile,
   NotFoundException,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -66,7 +67,7 @@ export class UserController {
     return this.userService.findAll(query);
   }
 
-  @Get(':id')
+  @Get('getById/:id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: '获取指定ID的用户',
@@ -150,5 +151,32 @@ export class UserController {
     } else {
       res.download(data.url);
     }
+  }
+
+  @Get('getOneInviteKey')
+  @ApiOperation({
+    summary: '随机获取一个未使用的邀请码',
+    description: '随机获取一个未使用的邀请码',
+  })
+  @ApiQuery({ name: 'key', description: '秘钥，只有正确的秘钥才能获取邀请码' })
+  async getOneInviteKey(@Query('key') key: string) {
+    console.log('key', key);
+    // 验证秘钥是否正确
+    const adminKey = await this.userService.getInviteCodeSecret();
+    console.log('adminKey', adminKey);
+
+    if (adminKey !== key) throw new BadRequestException('秘钥不正确');
+    else return this.userService.getOneInviteCode();
+  }
+
+  @Post('generateInviteKeys')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiOperation({
+    summary: '生成指定数量的邀请码',
+    description: '生成指定数量的邀请码',
+  })
+  @ApiQuery({ name: 'number', description: '生成的数量' })
+  async generateInviteKeys(@Query('number') number: number) {
+    return this.userService.generateInviteCode(number);
   }
 }

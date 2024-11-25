@@ -1,5 +1,5 @@
 import { Module, Logger } from '@nestjs/common';
-import { APP_INTERCEPTOR, APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService, RedisClientService } from './app.service';
 
@@ -22,7 +22,7 @@ import * as redisStore from 'cache-manager-ioredis';
 
 // 引入全局配置模块
 
-import { RolesGuard } from './common/guard';
+// import { RolesGuard } from './common/guard';
 
 import { GlobalInterceptor } from './common/interceptor/global.interceptor';
 import { AllExceptionsFilter } from './common/filter/any-exception.filter';
@@ -77,7 +77,7 @@ import { AllExceptionsFilter } from './common/filter/any-exception.filter';
     AppService,
     Logger,
     // 注册全局守卫
-    { provide: APP_GUARD, useClass: RolesGuard },
+    // { provide: APP_GUARD, useClass: RolesGuard },
     // 注册全局拦截器
     { provide: APP_INTERCEPTOR, useClass: GlobalInterceptor },
     // 注册全局过滤器

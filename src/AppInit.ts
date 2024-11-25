@@ -70,7 +70,7 @@ export default async function AppInit(app: NestExpressApplication) {
       name: configService.get<string>('SESSION_KEY'),
       cookie: {
         maxAge: Number.parseInt(configService.get('SESSION_MAX_AGE')) * 1000,
-        httpOnly: true,
+        httpOnly: false,
       },
       rolling: true, // 刷新session
       resave: false, // 只有在会话数据发生变化时才保存会话，避免不必要的IO操作

@@ -25,7 +25,7 @@ import { LocalAuthGuard } from 'src/modules/auth/auth.guard';
 
 import { OAuth2Strategy } from './modules/auth/oauth.strategy';
 
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import * as svgCaptcha from 'svg-captcha';
 
 @ApiTags('app')
@@ -47,20 +47,32 @@ export class AppController {
   // 获取验证码图片
   @Get('auth/captcha')
   @ApiOperation({ summary: '获取验证码图片', description: '获取验证码图片' })
-  createCode(@Res() res: Response, @Session() session: any) {
+  createCode(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Session() session: any,
+  ) {
     const captcha = svgCaptcha.create({
       size: 4,
       ignoreChars: '0o1i',
       background: '#ffffff',
-      fontSize: 18,
-      width: 100,
-      height: 30,
+      fontSize: 40,
+      width: 150,
+      height: 40,
     });
 
     res.contentType('image/svg+xml');
     session.code = captcha.text;
+    req.session['code'] = captcha.text;
     console.log('captcha', captcha.text);
-    res.send(captcha.data);
+
+    // 保存会话
+    req.session.save((err) => {
+      if (err) {
+        throw new InternalServerErrorException('保存session会话失败');
+      }
+      res.send(captcha.data);
+    });
   }
 
   // 登录
@@ -151,7 +163,7 @@ export class AppController {
       }
 
       // 成功认证后生成token
-      const { access_token } = this.authService.login(userInfo);
+      const { access_token } = this.authService.login(res);
       (res as any).access_token = access_token;
 
       const url = new URL(this.configService.get('OAUTH_FRONTEND_URL'));
