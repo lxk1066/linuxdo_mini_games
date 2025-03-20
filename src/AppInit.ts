@@ -22,7 +22,10 @@ import { ValidationPipe } from './config/validate.pipe';
 
 export default async function AppInit(app: NestExpressApplication) {
   const configService = app.get(ConfigService);
-  const redisClient = new RedisClientService(5, configService).getRedisClient();
+  const redisClient = new RedisClientService(
+    configService.get('REDIS_DB_SESSION'),
+    configService,
+  ).getRedisClient();
 
   // 设置全局接口前缀
   // app.setGlobalPrefix('api');

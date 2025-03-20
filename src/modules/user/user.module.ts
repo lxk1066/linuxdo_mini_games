@@ -41,11 +41,6 @@ import { UploadModule } from '../upload/upload.module';
                 email: 'user1@user.com',
                 password: '123456',
               },
-              {
-                id: 2,
-                name: 'user2',
-                email: 'user2@user.com',
-              },
             ];
           },
         };

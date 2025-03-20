@@ -7,6 +7,7 @@ import { UserModule } from 'src/modules/user/user.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { UploadModule } from 'src/modules/upload/upload.module';
 import { GamesModule } from 'src/modules/games/games.module';
+import { AdModule } from 'src/modules/ad/ad.module';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SqlClientConfig } from './config/mysql.config';
@@ -63,6 +64,7 @@ import { AllExceptionsFilter } from './common/filter/any-exception.filter';
     AuthModule,
     GamesModule,
     JobModule,
+    AdModule,
   ],
   controllers: [AppController],
   providers: [
